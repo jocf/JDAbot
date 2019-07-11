@@ -41,34 +41,40 @@ public class Bot extends ListenerAdapter {
     public void onMessageReceived(MessageReceivedEvent event){
         // Generating our file properties.
         parser.generateProperties();
-        // Create our CmdHandler object to handle commands.
-        CmdHandler handler = new CmdHandler();
         // Fetching the bot object from the event received.
         JDA bot = event.getJDA();
         // Now, we will check if the event is coming from a text channel within the discord guild.
-        if (event.isFromType(ChannelType.TEXT)){
+        if (event.isFromType(ChannelType.TEXT) && (!event.getAuthor().isBot()) && (event.getMessage().getContentDisplay().charAt(0) == '?')){
             // Next, we need to determine if the channel is the specified adminChannel that commands should be sent to.
             // If this was in an admin channel, we will be handling ALL admin commands here.
             if (event.getChannel().getName().equals(parser.getAdminChannel())){
+
                 // If not bot print user entered commands.
+                TextChannel AfkTextChannel = event.getGuild().getTextChannelsByName(parser.getAfkCheckChannel(),true).get(0); // Channel for final afk check to be sent to.
+                // Create our CmdHandler object to handle commands. It is being passed the adminChannel and AfkTextChannel.
+                CmdHandler handler = new CmdHandler(event.getTextChannel(),AfkTextChannel);
+
                 if (!event.getAuthor().isBot()){
                     System.out.println("Message " + event.getMessage().getContentDisplay() + " was sent in admin channel by the user " + event.getAuthor().getName());
                 }
-                if (event.getMessage().getContentDisplay().split(" ")[0].equals("!afk")){
+                if (event.getMessage().getContentDisplay().equals("?afk")){
+
                     // Should link to the AfkCheck class. To be implemented later.
                     // We need to fetch the AfkCheck channel name here as well.
-                    // Call sendAfkCheck method.
-                    TextChannel AfkTextChannel = event.getGuild().getTextChannelsByName(parser.getAfkCheckChannel(),true).get(0);
-                    if (event.getMessage().getContentDisplay().split(" ").length >= 2) {
-                        handler.sendAfkCheck(AfkTextChannel, event.getTextChannel(), event.getMessage().getContentDisplay().split(" ")[1]);
-                    }else{
-                        event.getTextChannel().sendMessage("```Please enter the command with the correct syntax.```").queue();
-                    }
 
-                }else if(event.getMessage().getContentDisplay().equals("!help")){
+                    // Call sendAfkCheck method and pass the starting user (user who entered the command).
+                    User startUser = event.getAuthor();
+                    handler.preAfkCheck(startUser);
+
+                }else if(event.getMessage().getContentDisplay().equals("?help")) {
                     TextChannel adminTextChannel = event.getTextChannel();
                     // Call sendHelpMessage method.
                     handler.sendHelpMessage(adminTextChannel);
+                }else if(event.getMessage().getContentDisplay().equals("?verify")){
+                    // Do verification stuff here.
+                }else{ // If some unhandled error occurs throw a syntax error.
+                  event.getTextChannel().sendMessage("```Please enter the command with the correct syntax.```").queue();
+                  return;
                 }
             }
         }

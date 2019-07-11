@@ -2,42 +2,63 @@ package site.giacomo;
 
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.TextChannel;
+import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.core.entities.Emote;
+
 
 import java.awt.*;
 
 public class CmdHandler {
-    // Our EmbedBuilder, this is used to build advanced messages to be sent in chat.
-    EmbedBuilder eb = new EmbedBuilder();
-    // This is our afkCheck send method. This handles the !afk command
-    public void sendAfkCheck(TextChannel afkChannel, TextChannel adminChannel, String runType){
-        // if void or cult are not specified, then print a useful message
-        if (!(runType.equals("void") || runType.equals("cult"))){
-            adminChannel.sendMessage("```Please enter the command with the correct syntax.```").queue();
+    protected TextChannel adminChannel;
+    protected TextChannel afkTextChannel;
 
-            eb.setTitle("Title", null);
-            eb.setColor(Color.GREEN);
-            eb.setDescription("Text");
-            eb.addField("Title of field", "test of field", false);
+    // Constructor to assign adminChannel and AfkTextChannel
+
+    public CmdHandler(TextChannel adminChannel, TextChannel AfkTextChannel){
+        this.adminChannel = adminChannel;
+        this.afkTextChannel = AfkTextChannel;
+    }
+
+    // This is our afkCheck send method. This handles the !afk command
+    public void preAfkCheck(User startUser){
+        // Sends the pre-afk start check message.
+        // This message includes VOID/CULT check.
+        // Our EmbedBuilder, this is used to build advanced messages to be sent in chat.
+        EmbedBuilder eb = new EmbedBuilder();
+        eb.setTitle("Afk-Check Options", null);
+        eb.setColor(Color.GREEN);
+        eb.addField("Please choose run type", "Please selected run type by reacting to either :void: or :malus:. Once you are done, react to :whitebag~1: to begin the check.", false);
+        //eb.addBlankField(false);
+        eb.setFooter("giacomo.site", "https://i.imgur.com/tiQUxJR.png");
+        adminChannel.sendMessage(eb.build()).queue();
+
+    }
+
+    public void startAfkCheck(String runType, User startUser){
+        // Our EmbedBuilder, this is used to build advanced messages to be sent in chat.
+        EmbedBuilder eb = new EmbedBuilder();
+        if (!(runType.equals("void") || runType.equals("cult"))){
+
+            eb.setTitle("Afk-Check Options", null);
+            eb.setColor(Color.orange);
+            eb.addField("How to use", "Please react to either the void/cult symbol, select classes, and then press start.", false);
             eb.addBlankField(false);
-            eb.setAuthor("name", null, "https://github.com/zekroTJA/DiscordBot/blob/master/.websrc/zekroBot_Logo_-_round_small.png");
-            eb.setFooter("Text", "https://github.com/zekroTJA/DiscordBot/blob/master/.websrc/zekroBot_Logo_-_round_small.png");
-            eb.setImage("https://github.com/zekroTJA/DiscordBot/blob/master/.websrc/logo%20-%20title.png");
-            eb.setThumbnail("https://github.com/zekroTJA/DiscordBot/blob/master/.websrc/logo%20-%20title.png");
-            adminChannel.sendMessage(eb.build()).queue();
+            eb.setFooter("giacomo.site", "https://i.imgur.com/tiQUxJR.png");
+            eb.setThumbnail("https://i.imgur.com/tiQUxJR.png");
+            afkTextChannel.sendMessage(eb.build()).queue();
 
             return;
         }
         // if the cult parameter is provided start a cult check
         else if (runType.equals("cult")){
-            afkChannel.sendMessage("```cult started.```").queue();
+            afkTextChannel.sendMessage("```cult started.```").queue();
             return;
         }
         // if the void parameter is provided start a void check
         else if (runType.equals("void")){
-            afkChannel.sendMessage("```void started.```").queue();
+            afkTextChannel.sendMessage("```void started.```").queue();
             return;
         }
-
     }
 
     public void sendHelpMessage(TextChannel channel){
