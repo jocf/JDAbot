@@ -12,10 +12,12 @@ public class CmdHandler {
     protected TextChannel adminChannel;
     protected TextChannel afkTextChannel;
 
-    // Constructor to assign adminChannel and AfkTextChannel
 
-    public CmdHandler(TextChannel adminChannel, TextChannel AfkTextChannel){
+    public void setAdminChannel(TextChannel adminChannel){
         this.adminChannel = adminChannel;
+    }
+
+    public void setAfkTextChannel(TextChannel AfkTextChannel){
         this.afkTextChannel = AfkTextChannel;
     }
 

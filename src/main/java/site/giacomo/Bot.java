@@ -20,7 +20,9 @@ import javax.security.auth.login.LoginException;
 public class Bot extends ListenerAdapter {
     // Bot startup in main method. authToken is passed from the config file which is parsed in the Main class.
     // Creating our parser object.
-    PropParser parser = new PropParser();
+    protected PropParser parser = new PropParser();
+    // Creating CmdHandler object.
+    protected CmdHandler handler = new CmdHandler();
     public static void main(String authToken) {
         try{
             JDA bot = new JDABuilder(authToken).addEventListener(new Bot()).build();
@@ -51,8 +53,9 @@ public class Bot extends ListenerAdapter {
 
                 // If not bot print user entered commands.
                 TextChannel AfkTextChannel = event.getGuild().getTextChannelsByName(parser.getAfkCheckChannel(),true).get(0); // Channel for final afk check to be sent to.
-                // Create our CmdHandler object to handle commands. It is being passed the adminChannel and AfkTextChannel.
-                CmdHandler handler = new CmdHandler(event.getTextChannel(),AfkTextChannel);
+                // Pass the adminChannel and AfkTextChannel to the command handler.
+                handler.setAdminChannel(event.getTextChannel());
+                handler.setAfkTextChannel(AfkTextChannel);
 
                 if (!event.getAuthor().isBot()){
                     System.out.println("Message " + event.getMessage().getContentDisplay() + " was sent in admin channel by the user " + event.getAuthor().getName());
