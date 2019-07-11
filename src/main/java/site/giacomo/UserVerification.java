@@ -1,6 +1,6 @@
 package site.giacomo;
 
-public class Verification {
+public class UserVerification {
     protected String blah;
     public void Verification(){
         this.blah = "yeet";

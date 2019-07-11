@@ -5,21 +5,16 @@ import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.entities.Emote;
 
-
 import java.awt.*;
 
-public class CmdHandler {
+public class CmdHandler{
     protected TextChannel adminChannel;
     protected TextChannel afkTextChannel;
 
 
-    public void setAdminChannel(TextChannel adminChannel){
-        this.adminChannel = adminChannel;
-    }
+    public void setAdminChannel(TextChannel adminChannel){ this.adminChannel = adminChannel; }
 
-    public void setAfkTextChannel(TextChannel AfkTextChannel){
-        this.afkTextChannel = AfkTextChannel;
-    }
+    public void setAfkTextChannel(TextChannel AfkTextChannel){ this.afkTextChannel = AfkTextChannel; }
 
     // This is our afkCheck send method. This handles the !afk command
     public void preAfkCheck(User startUser){
@@ -66,4 +61,5 @@ public class CmdHandler {
     public void sendHelpMessage(TextChannel channel){
 
     }
+
 }

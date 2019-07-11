@@ -1,19 +1,15 @@
 package site.giacomo;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import net.dv8tion.jda.client.entities.Group;
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.*;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.core.exceptions.PermissionException;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
-import java.awt.Color;
 
 import javax.security.auth.login.LoginException;
 
@@ -81,6 +77,11 @@ public class Bot extends ListenerAdapter {
                 }
             }
         }
+    }
+    // This will be used to handle reactions to messages sent in chat.
+    @Override
+    public void onMessageReactionAdd(MessageReactionAddEvent event){
+
     }
 
 }
