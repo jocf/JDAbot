@@ -1,5 +1,7 @@
 package site.giacomo;
 
+import org.apache.logging.log4j.core.config.properties.PropertiesConfiguration;
+
 import java.io.*;
 import java.util.*;
 
@@ -12,15 +14,21 @@ public class PropParser {
     protected String cultIcon;
     protected String startIcon;
     protected String stopIcon;
+    protected String startName;
+    protected String stopName;
+    protected String voidName;
+    protected String cultName;
+
+
     protected List<String> icons = new ArrayList<>();
     public void generateProperties() {
         // Creating the properties object.
         Properties properties = new Properties();
         // This is the location of the properties file. It should be in the "root" directory.
         try {
-            FileInputStream ip = new FileInputStream("C:\\Users\\Giacomo\\Dropbox\\Programming\\JDAbot\\build\\libs\\config.properties");
+            FileInputStream in = new FileInputStream("C:\\Users\\Giacomo\\Dropbox\\Programming\\JDAbot\\build\\libs\\config.properties");
             // We will now load the properties in.
-            properties.load(ip);
+            properties.load(in);
         } catch (IOException e) {
             System.out.println("Properties failed on startup! Please check config.properties and ensure it is in the correct location!");
             e.printStackTrace();
@@ -29,6 +37,7 @@ public class PropParser {
         The way in which icons are added to the icon list could easily be upgraded in future to allow for user-specified icon expansion through the
         configuration file but for the use of the bot as it stands this is fairly unnecessary and also resource intensive.
          */
+
         authToken = properties.getProperty("authToken");
         AfkCheckChannel = properties.getProperty("afkCheckChannel");
         adminChannel = properties.getProperty("adminChannel");
@@ -40,7 +49,36 @@ public class PropParser {
         icons.add(startIcon);
         stopIcon = properties.getProperty("stopIcon");
         icons.add(stopIcon);
+        startName = properties.getProperty("startName");
+        stopName = properties.getProperty("stopName");
+        cultName = properties.getProperty("cultName");
+        voidName = properties.getProperty("voidName");
 
+
+    }
+
+    public void setAdminChannel(String newChannel) throws IOException{
+        FileInputStream in = new FileInputStream("C:\\Users\\Giacomo\\Dropbox\\Programming\\JDAbot\\build\\libs\\config.properties");
+        Properties properties = new Properties();
+        properties.load(in);
+        in.close();
+
+        FileOutputStream out = new FileOutputStream("C:\\Users\\Giacomo\\Dropbox\\Programming\\JDAbot\\build\\libs\\config.properties");
+        properties.setProperty("adminChannel", newChannel);
+        properties.store(out, null);
+        out.close();
+    }
+
+    public void setAfkCheckChannel(String newChannel) throws IOException {
+        FileInputStream in = new FileInputStream("C:\\Users\\Giacomo\\Dropbox\\Programming\\JDAbot\\build\\libs\\config.properties");
+        Properties properties = new Properties();
+        properties.load(in);
+        in.close();
+
+        FileOutputStream out = new FileOutputStream("C:\\Users\\Giacomo\\Dropbox\\Programming\\JDAbot\\build\\libs\\config.properties");
+        properties.setProperty("afkCheckChannel", newChannel);
+        properties.store(out, null);
+        out.close();
     }
 
     public String getAuthToken(){
@@ -59,7 +97,15 @@ public class PropParser {
 
     public String getStartIcon(){ return startIcon; }
 
-    public String getStopIcon() { return stopIcon; }
+    public String getStopIcon(){ return stopIcon; }
+
+    public String getStopName() { return stopName; }
+
+    public String getStartName() { return startName; }
+
+    public String getVoidName() { return voidName; }
+
+    public String getCultName() { return cultName; }
 
     public List<String> getIcons(){ return icons; }
 

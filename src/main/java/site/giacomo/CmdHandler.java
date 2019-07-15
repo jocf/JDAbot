@@ -37,17 +37,28 @@ public class CmdHandler extends Bot{
         //adminChannel.sendMessage("Your guild has " + guildEmotes.size() + " emotes").queue();
         EmbedBuilder eb = new EmbedBuilder();
         eb.setTitle("Afk-Check Options", null);
-        eb.setColor(Color.orange);
+        eb.setColor(Color.PINK);
         eb.addField("Please choose run type", "Select run type by reacting to either " + parser.getCultIcon() + " or " + parser.getVoidIcon() + ". Once you are done, react to " + parser.getStartIcon() + " to begin the check. " + "You can react to " + parser.getStopIcon() + " to cancel.", false);
-        eb.addField("","Afk-Check was started by " + startUser.getName(),false);
+        eb.addField("","Pre-afk-check was started by " + startUser.getName(),false);
         eb.setFooter("giacomo.site", "https://i.imgur.com/tiQUxJR.png");
         adminChannel.sendMessage(eb.build()).queue();
+        return;
 
     }
 
 
-    public void sendHelpMessage(TextChannel channel){
-
+    public void sendHelpMessage(){
+        EmbedBuilder eb = new EmbedBuilder();
+        eb.setTitle("Bot Commands!", null);
+        eb.setColor(Color.PINK);
+        eb.addField("?afk","```Starts a pre-afk check! This will launch a menu in which the user can choose void or cult type and start the check.```",false);
+        eb.addField("?help","```Prompts this help message!```",false);
+        eb.addField("?changeafkchannel new-channel-name","```Changes the channel in which afk-checks will be sent to.```",false);
+        eb.addField("?changeadminchannel new-channel-name","```Changes the channel in administration commands such as ?afk and ?help can be sent in.```",false);
+        eb.addField("?verify","```User verification! Must be sent in the set verification channel. This allows users to verify themselves automatically.```",false);
+        eb.setFooter("giacomo.site", "https://i.imgur.com/tiQUxJR.png");
+        adminChannel.sendMessage(eb.build()).queue();
+        return;
 
     }
 

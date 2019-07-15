@@ -14,8 +14,12 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
 import javax.security.auth.login.LoginException;
 import java.awt.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+
+
 
 public class Bot extends ListenerAdapter {
     /*
@@ -39,7 +43,7 @@ public class Bot extends ListenerAdapter {
             e.printStackTrace();
         }
     }
-
+    protected CmdHandler handler = null;
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         // Generating our file properties.
@@ -55,14 +59,17 @@ public class Bot extends ListenerAdapter {
             if (!event.getAuthor().isBot() && event.getChannel().getName().equals(parser.getAdminChannel())) {
                 // Creating CmdHandler object when a message is received and meets the criteria.
                 // NOTE: Emotes are not currently in use. Scheduled to be in use in future updates.
-                CmdHandler handler = new CmdHandler(event.getGuild().getEmotes(), parser);
-                System.out.println("The user " + event.getAuthor().getName() + " sent the command " + event.getMessage().getContentDisplay() + ".");
+                handler = new CmdHandler(event.getGuild().getEmotes(), parser);
+
+                String sentCommand = event.getMessage().getContentDisplay();
+                System.out.println("The user " + event.getAuthor().getName() + " sent the command " + sentCommand + ".");
+
                 // Channel for final afk check to be sent to.
-                TextChannel AfkTextChannel = event.getGuild().getTextChannelsByName(parser.getAfkCheckChannel(), true).get(0);
+                TextChannel AfkTextChannel = event.getGuild().getTextChannelsByName(parser.getAfkCheckChannel(), false).get(0);
                 // Pass the adminChannel and AfkTextChannel to the command handler.
                 handler.setAdminChannel(event.getTextChannel());
                 handler.setAfkTextChannel(AfkTextChannel);
-                if (event.getMessage().getContentDisplay().equals("?afk")) {
+                if (sentCommand.equals("?afk")) {
                     /*
                     Should link to the AfkCheck class. To be implemented later.
                     We need to fetch the AfkCheck channel name here as well.
@@ -70,12 +77,41 @@ public class Bot extends ListenerAdapter {
                      */
                     User startUser = event.getAuthor();
                     handler.preAfkCheck(startUser);
-                } else if (event.getMessage().getContentDisplay().equals("?help")) {
+                } else if (sentCommand.equals("?help")) {
                     TextChannel adminTextChannel = event.getTextChannel();
                     // Call sendHelpMessage method.
-                    handler.sendHelpMessage(adminTextChannel);
-                } else if (event.getMessage().getContentDisplay().equals("?verify")) {
+                    handler.sendHelpMessage();
+                } else if (sentCommand.equals("?verify")) {
                     // Do verification stuff here.
+
+                }else if(sentCommand.split(" ")[0].equals("?changeafkchannel")){
+                    String[] fullCommand = sentCommand.split(" ");
+                    if ((fullCommand.length == 2) && (event.getGuild().getTextChannelsByName(fullCommand[1],false).isEmpty() == false)){
+                        try {
+                            parser.setAfkCheckChannel(fullCommand[1]);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        String sentMessage = String.format("```Afk channel successfully changed to %s.```", fullCommand[1]);
+                        event.getTextChannel().sendMessage(sentMessage).queue();
+                    }else{
+                        event.getTextChannel().sendMessage("```You did not specify a new afk channel, or the channel does not exist in the discord!```").queue();
+                    }
+
+                }else if(sentCommand.split(" ")[0].equals("?changeadminchannel")){
+                    String[] fullCommand = sentCommand.split(" ");
+                    if ((fullCommand.length == 2) && (event.getGuild().getTextChannelsByName(fullCommand[1],false).isEmpty() == false)){
+                        try {
+                            parser.setAdminChannel(fullCommand[1]);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        String sentMessage = String.format("```Admin channel successfully changed to %s.```", fullCommand[1]);
+                        event.getTextChannel().sendMessage(sentMessage).queue();
+                    }else{
+                        event.getTextChannel().sendMessage("```You did not specify a new admin channel, or the channel does not exist in the discord!```").queue();
+                    }
+
                 } else { // If some unhandled error occurs throw a syntax error.
                     event.getTextChannel().sendMessage("```Please enter the command with the correct syntax.```").queue();
                     return;
@@ -121,73 +157,110 @@ public class Bot extends ListenerAdapter {
         }
     }
 
+    /*
+    This is where all message reaction handling takes place.
+    This covers two scenarios:
+    - Pre-Afk check
+    - Afk-Check
+     */
+
+    protected int voidCount = 0;
+    protected int cultCount = 0;
+
     @Override
     public void onGuildMessageReactionAdd(GuildMessageReactionAddEvent event){
-        if(event.getChannel().getName().equals(parser.getAdminChannel())){
+        // We need to ensure that the only messages that we are performing reaction operations/checks on are those messages that are pre-afk-checks. I.e. not any random message that is in the admin channel.
+        if(event.getChannel().getName().equals(parser.getAdminChannel()) && event.getReaction().getChannel().getMessageById(event.getMessageId()).complete().getEmbeds().get(0).getTitle().equals("Afk-Check Options")){
             // Fetching the original message that was sent in the channel to see what reactions have been checked.
             Message message = event.getChannel().getMessageById(event.getMessageId()).complete();
             // Fetching the message reactions to check who has reacted and how many reactions there are.
             List<MessageReaction> reactions = message.getReactions();
 
-            if(event.getReactionEmote().getName().equals("start") && !event.getUser().isBot()){
+            /*
+            We have to manually count our void and cult reactions here as the .count() method that is part of the JDA library does not work correctly.
+             */
 
-                System.out.println("Run started by " + event.getUser().getName());
-                // We now check to see if the user has forgotten to select a raid type
+            if(event.getReactionEmote().getName().equals(parser.getVoidName())){
+                voidCount++;
+            }
 
-                for(MessageReaction e : message.getReactions()){
+            if(event.getReactionEmote().getName().equals(parser.getCultName())){
+                cultCount++;
+            }
 
-                    event.getChannel().sendMessage(e.getReactionEmote().getEmote().getName()).queue();
-                }
+            if(event.getReactionEmote().getName().equals(parser.getStartName()) && !event.getUser().isBot()){
+                // We run this check on the off chance the bot lags and a user reacts to start before all reactions have been printed.
+                if(!(message.getReactions().size() < 4)) {
+                    System.out.println("Run started by " + event.getUser().getName());
+
+                    // System.out.println(voidEmote.getCount());
+                    // System.out.println(cultEmote.getCount());
 
 
-                if ((message.getReactions().get(0).getCount() < 2) && (message.getReactions().get(1).getCount() < 2 )){
+                    // We now check to see if the user has forgotten to select a raid type
 
-                    event.getChannel().sendMessage("```Please selected either cult or void and then re-react to the start button!```").queue();
-                }else if ((message.getReactions().get(0).getCount() >= 2) && (message.getReactions().get(1).getCount() >= 2 )){
 
-                    event.getChannel().sendMessage("```You cannot select two run types! Please select one and re-react to the start button!```").queue();
-                }else{
+                    if ((voidCount < 2) && (cultCount < 2)) {
+                        event.getChannel().sendMessage("```You did not select a run type!```").queue();
+                        message.delete().queue();
+                        voidCount = 0;
+                        cultCount = 0;
+                        handler.preAfkCheck(event.getUser());
+                        return;
+                    } else if ((voidCount >= 2) && (cultCount >= 2)) {
 
-                    event.getChannel().sendMessage("```Run started.```").queue();
-                    // Fetch the AfkTextChannel in the guild to passed to the run start method.
-                    TextChannel afkTextChannel = event.getGuild().getTextChannelsByName(parser.getAfkCheckChannel(), true).get(0);
-                    String runType;
-                    if (message.getReactions().get(0).getCount() >= 2){
-                        runType = "void";
-                    }else{
-                        runType = "cult";
+                        event.getChannel().sendMessage("```You cannot select two run types!```").queue();
+                        message.delete().queue();
+                        voidCount = 0;
+                        cultCount = 0;
+                        handler.preAfkCheck(event.getUser());
+                        return;
+                    } else {
+
+                        // Fetch the AfkTextChannel in the guild to passed to the run start method.
+
+                        TextChannel afkTextChannel = event.getGuild().getTextChannelsByName(parser.getAfkCheckChannel(), true).get(0);
+
+                        // Run type to be sent to the run start method.
+
+                    /*
+                    WE NOW CREATE A NEW AFK CHECK OBJECT FOR EACH AFK CHECK.
+                    IF A CURRENT AFK-CHECK OBJECT ALREADY EXISTS,
+                    WE STILL CREATE A NEW ONE.
+                     */
+                        String runType;
+                        User startUser = event.getUser();
+                        if (voidCount >= 2) {
+                            runType = "void";
+                            event.getChannel().sendMessage("```Void run started!```").queue();
+                            message.delete().queue();
+                        } else {
+                            runType = "cult";
+                            event.getChannel().sendMessage("```Cult run started!```").queue();
+                            message.delete().queue();
+                        }
+                        voidCount = 0;
+                        cultCount = 0;
+
+                        AfkCheck afkCheck = new AfkCheck(runType,startUser,afkTextChannel);
+
+                        return;
+
                     }
-                    User startUser = event.getUser();
-
-                    startAfkCheck(runType,startUser,afkTextChannel);
-
+                }else{
+                    event.getChannel().sendMessage("```Please wait!```").queue();
                 }
 
 
-
-
-            }else if(event.getReactionEmote().getName().equals("stop") && !event.getUser().isBot()){
+            }else if(event.getReactionEmote().getName().equals(parser.getStopName()) && !event.getUser().isBot()){
 
                 // Stop afk check by deleting the start message.
                 System.out.println("Run canceled by " + event.getUser().getName());
                 message.delete().queue();
+                event.getChannel().sendMessage("```Run canceled!```").queue();
+                return;
             }
 
-        }
-    }
-
-    public void startAfkCheck(String runType, User startUser, TextChannel afkTextChannel){
-        // Our EmbedBuilder, this is used to build advanced messages to be sent in chat.
-        EmbedBuilder eb = new EmbedBuilder();
-        // if the cult parameter is provided start a cult check
-        if (runType.equals("cult")){
-            afkTextChannel.sendMessage("```cult started.```").queue();
-            return;
-        }
-        // if the void parameter is provided start a void check
-        else if (runType.equals("void")){
-            afkTextChannel.sendMessage("```void started.```").queue();
-            return;
         }
     }
 
