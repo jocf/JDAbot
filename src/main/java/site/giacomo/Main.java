@@ -1,8 +1,5 @@
 package site.giacomo;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.util.*;
 
 public class Main {
@@ -13,8 +10,8 @@ public class Main {
         parser.generateProperties();
         boolean loopCheck = true;
         System.out.println("Bot initiated. Enter start to start the bot or help to view a list of available commands");
+        Scanner scanner = new Scanner(System.in);
         while (loopCheck){
-            Scanner scanner = new Scanner(System.in);
             String command = scanner.nextLine();
             if (command.equals("start")){
                 Bot.main(parser.getAuthToken()); // this will be replaced with a config file read later on.

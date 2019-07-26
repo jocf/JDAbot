@@ -1,7 +1,6 @@
 package site.giacomo;
 
 import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.entities.*;
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent;
 
@@ -54,17 +53,12 @@ public class CmdHandler extends Bot{
         eb.addField("?afk","```Starts a pre-afk check! This will launch a menu in which the user can choose void or cult type and start the check.```",false);
         eb.addField("?help","```Prompts this help message!```",false);
         eb.addField("?changeafkchannel new-channel-name","```Changes the channel in which afk-checks will be sent to.```",false);
-        eb.addField("?changeadminchannel new-channel-name","```Changes the channel in administration commands such as ?afk and ?help can be sent in.```",false);
+        eb.addField("?changeadminchannel new-channel-name","```Changes the channel in which administration commands such as ?afk and ?help can be sent in.```",false);
+        eb.addField("?changeverifychannel new-channel-name","```Changes the verification channel.```",false);
         eb.addField("?verify","```User verification! Must be sent in the set verification channel. This allows users to verify themselves automatically.```",false);
         eb.setFooter("giacomo.site", "https://i.imgur.com/tiQUxJR.png");
         adminChannel.sendMessage(eb.build()).queue();
         return;
-
-    }
-
-    // This will be used to handle reactions to messages sent in chat.
-    @Override
-    public void onMessageReactionAdd(MessageReactionAddEvent event){
 
     }
 }

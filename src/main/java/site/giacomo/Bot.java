@@ -1,21 +1,16 @@
 package site.giacomo;
 
-import net.dv8tion.jda.client.entities.Group;
-import net.dv8tion.jda.core.EmbedBuilder;
+
 import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDABuilder;
 import net.dv8tion.jda.core.entities.*;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.events.message.guild.react.GuildMessageReactionAddEvent;
-import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent;
-import net.dv8tion.jda.core.exceptions.PermissionException;
-import net.dv8tion.jda.core.exceptions.RateLimitedException;
+
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
 import javax.security.auth.login.LoginException;
-import java.awt.*;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -27,6 +22,8 @@ public class Bot extends ListenerAdapter {
      */
     // Creating our parser object.
     protected PropParser parser = new PropParser();
+    protected CmdHandler handler = null;
+    protected AfkCheck afkCheck = null;
     //protected CmdHandler handler = new CmdHandler();
     public static void main(String authToken) {
         try{
@@ -43,7 +40,8 @@ public class Bot extends ListenerAdapter {
             e.printStackTrace();
         }
     }
-    protected CmdHandler handler = null;
+
+
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
         // Generating our file properties.
@@ -82,41 +80,59 @@ public class Bot extends ListenerAdapter {
                     // Call sendHelpMessage method.
                     handler.sendHelpMessage();
                 } else if (sentCommand.equals("?verify")) {
-                    // Do verification stuff here.
+                    event.getTextChannel().sendMessage("```This command cannot be used in this channel.```").queue();
+                }else if(sentCommand.contains("?change")){
 
-                }else if(sentCommand.split(" ")[0].equals("?changeafkchannel")){
-                    String[] fullCommand = sentCommand.split(" ");
-                    if ((fullCommand.length == 2) && (event.getGuild().getTextChannelsByName(fullCommand[1],false).isEmpty() == false)){
-                        try {
-                            parser.setAfkCheckChannel(fullCommand[1]);
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                    if (sentCommand.contains(" ")){
+                        String[] fullCommand = sentCommand.split(" ");
+                        if ((fullCommand.length == 2) && (event.getGuild().getTextChannelsByName(fullCommand[1],false).isEmpty() == false)){
+                            if (fullCommand[0].equals("?changeafkchannel")){
+                                try {
+                                    parser.setAfkCheckChannel(fullCommand[1]);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                                String sentMessage = String.format("```Afk channel successfully changed to %s.```", fullCommand[1]);
+                                event.getTextChannel().sendMessage(sentMessage).queue();
+                            }else if(fullCommand[0].equals("?changeadminchannel")){
+                                try {
+                                    parser.setAdminChannel(fullCommand[1]);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                                String sentMessage = String.format("```Admin channel successfully changed to %s.```", fullCommand[1]);
+                                event.getTextChannel().sendMessage(sentMessage).queue();
+                            }else if(fullCommand[0].equals("?changeverifychannel")){
+                                try {
+                                    parser.setVerifyChannel(fullCommand[1]);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                                String sentMessage = String.format("```Verification channel successfully changed to %s.```", fullCommand[1]);
+                                event.getTextChannel().sendMessage(sentMessage).queue();
+                            }
+                        }else if(fullCommand.length > 2){
+                            event.getTextChannel().sendMessage("```Command formatted incorrectly.```").queue();
+                        }else{
+                            event.getTextChannel().sendMessage("```You did not specify a new afk channel, or the channel does not exist in the discord!```").queue();
                         }
-                        String sentMessage = String.format("```Afk channel successfully changed to %s.```", fullCommand[1]);
-                        event.getTextChannel().sendMessage(sentMessage).queue();
+
                     }else{
-                        event.getTextChannel().sendMessage("```You did not specify a new afk channel, or the channel does not exist in the discord!```").queue();
+                        event.getMessage().getTextChannel().sendMessage("```Command formatted incorrectly.```").queue();
                     }
 
-                }else if(sentCommand.split(" ")[0].equals("?changeadminchannel")){
-                    String[] fullCommand = sentCommand.split(" ");
-                    if ((fullCommand.length == 2) && (event.getGuild().getTextChannelsByName(fullCommand[1],false).isEmpty() == false)){
-                        try {
-                            parser.setAdminChannel(fullCommand[1]);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        String sentMessage = String.format("```Admin channel successfully changed to %s.```", fullCommand[1]);
-                        event.getTextChannel().sendMessage(sentMessage).queue();
-                    }else{
-                        event.getTextChannel().sendMessage("```You did not specify a new admin channel, or the channel does not exist in the discord!```").queue();
-                    }
-
-                } else { // If some unhandled error occurs throw a syntax error.
+                }else { // If some unhandled error occurs throw a syntax error.
                     event.getTextChannel().sendMessage("```Please enter the command with the correct syntax.```").queue();
                     return;
                 }
 
+            }
+            else if (!event.getAuthor().isBot() && event.getChannel().getName().equals(parser.getVerifyChannel())){
+                String sentCommand = event.getMessage().getContentDisplay();
+                if (sentCommand.contains("?verify")){
+                    UserVerifier userVerifier = new UserVerifier(event.getAuthor());
+
+                }
             }
 
 
@@ -169,8 +185,12 @@ public class Bot extends ListenerAdapter {
 
     @Override
     public void onGuildMessageReactionAdd(GuildMessageReactionAddEvent event){
-        // We need to ensure that the only messages that we are performing reaction operations/checks on are those messages that are pre-afk-checks. I.e. not any random message that is in the admin channel.
-        if(event.getChannel().getName().equals(parser.getAdminChannel()) && event.getReaction().getChannel().getMessageById(event.getMessageId()).complete().getEmbeds().get(0).getTitle().equals("Afk-Check Options")){
+        /*
+         We need to ensure that the only messages that we are performing reaction operations/checks on are those messages that are pre-afk-checks.
+         I.e. not any random message that is in the admin channel.
+         */
+        if(event.getChannel().getName().equals(parser.getAdminChannel()) && event.getReaction().getChannel().getMessageById(event.getMessageId())
+                .complete().getEmbeds().get(0).getTitle().equals("Afk-Check Options")){
             // Fetching the original message that was sent in the channel to see what reactions have been checked.
             Message message = event.getChannel().getMessageById(event.getMessageId()).complete();
             // Fetching the message reactions to check who has reacted and how many reactions there are.
@@ -188,9 +208,14 @@ public class Bot extends ListenerAdapter {
                 cultCount++;
             }
 
-            if(event.getReactionEmote().getName().equals(parser.getStartName()) && !event.getUser().isBot()){
+            if(event.getReactionEmote().getName().equals(parser.getStartName()) && !event.getUser().isBot()) {
+                if (afkCheck != null){
+                    event.getChannel().sendMessage("```There is already an afk-check in progress! Please end the check before starting a new one!```").queue();
+                    message.delete().queue();
+                    return;
+
                 // We run this check on the off chance the bot lags and a user reacts to start before all reactions have been printed.
-                if(!(message.getReactions().size() < 4)) {
+                }else if(!(message.getReactions().size() < 4)) {
                     System.out.println("Run started by " + event.getUser().getName());
 
                     // System.out.println(voidEmote.getCount());
@@ -215,7 +240,7 @@ public class Bot extends ListenerAdapter {
                         cultCount = 0;
                         handler.preAfkCheck(event.getUser());
                         return;
-                    } else {
+                    } else if (afkCheck == null) {
 
                         // Fetch the AfkTextChannel in the guild to passed to the run start method.
 
@@ -224,9 +249,7 @@ public class Bot extends ListenerAdapter {
                         // Run type to be sent to the run start method.
 
                     /*
-                    WE NOW CREATE A NEW AFK CHECK OBJECT FOR EACH AFK CHECK.
-                    IF A CURRENT AFK-CHECK OBJECT ALREADY EXISTS,
-                    WE STILL CREATE A NEW ONE.
+                    WE NOW INSTANTIATE THE AFK CHECK OBJECT FOR EACH AFK CHECK.
                      */
                         String runType;
                         User startUser = event.getUser();
@@ -242,13 +265,15 @@ public class Bot extends ListenerAdapter {
                         voidCount = 0;
                         cultCount = 0;
 
-                        AfkCheck afkCheck = new AfkCheck(runType,startUser,afkTextChannel);
+                        afkCheck = new AfkCheck(runType,startUser,afkTextChannel,parser);
+                        afkCheck.startCheck();
 
                         return;
 
                     }
                 }else{
-                    event.getChannel().sendMessage("```Please wait!```").queue();
+                    event.getChannel().sendMessage("```An unexpected error occurred.```").queue();
+                    return;
                 }
 
 

@@ -1,7 +1,5 @@
 package site.giacomo;
 
-import org.apache.logging.log4j.core.config.properties.PropertiesConfiguration;
-
 import java.io.*;
 import java.util.*;
 
@@ -10,6 +8,7 @@ public class PropParser {
     protected String authToken;
     protected String AfkCheckChannel;
     protected String adminChannel;
+    protected String verifyChannel;
     protected String voidIcon;
     protected String cultIcon;
     protected String startIcon;
@@ -41,6 +40,7 @@ public class PropParser {
         authToken = properties.getProperty("authToken");
         AfkCheckChannel = properties.getProperty("afkCheckChannel");
         adminChannel = properties.getProperty("adminChannel");
+        verifyChannel = properties.getProperty("verifyChannel");
         voidIcon = properties.getProperty("voidIcon");
         icons.add(voidIcon);
         cultIcon = properties.getProperty("cultIcon");
@@ -81,11 +81,25 @@ public class PropParser {
         out.close();
     }
 
+    public void setVerifyChannel (String newChannel) throws IOException {
+        FileInputStream in = new FileInputStream("C:\\Users\\Giacomo\\Dropbox\\Programming\\JDAbot\\build\\libs\\config.properties");
+        Properties properties = new Properties();
+        properties.load(in);
+        in.close();
+
+        FileOutputStream out = new FileOutputStream("C:\\Users\\Giacomo\\Dropbox\\Programming\\JDAbot\\build\\libs\\config.properties");
+        properties.setProperty("verifyChannel", newChannel);
+        properties.store(out, null);
+        out.close();
+    }
+
     public String getAuthToken(){
         return authToken;
     }
 
     public String getAfkCheckChannel(){ return AfkCheckChannel; }
+
+    public String getVerifyChannel() { return verifyChannel; }
 
     public String getAdminChannel(){
         return adminChannel;
