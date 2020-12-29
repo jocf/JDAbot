@@ -58,36 +58,36 @@ public class PropParser {
     }
 
     public void setAdminChannel(String newChannel) throws IOException{
-        FileInputStream in = new FileInputStream("C:\\Users\\Giacomo\\Dropbox\\Programming\\JDAbot\\build\\libs\\config.properties");
+        FileInputStream in = new FileInputStream("filepathhere");
         Properties properties = new Properties();
         properties.load(in);
         in.close();
 
-        FileOutputStream out = new FileOutputStream("C:\\Users\\Giacomo\\Dropbox\\Programming\\JDAbot\\build\\libs\\config.properties");
+        FileOutputStream out = new FileOutputStream("filepathhere");
         properties.setProperty("adminChannel", newChannel);
         properties.store(out, null);
         out.close();
     }
 
     public void setAfkCheckChannel(String newChannel) throws IOException {
-        FileInputStream in = new FileInputStream("C:\\Users\\Giacomo\\Dropbox\\Programming\\JDAbot\\build\\libs\\config.properties");
+        FileInputStream in = new FileInputStream("filepathhere");
         Properties properties = new Properties();
         properties.load(in);
         in.close();
 
-        FileOutputStream out = new FileOutputStream("C:\\Users\\Giacomo\\Dropbox\\Programming\\JDAbot\\build\\libs\\config.properties");
+        FileOutputStream out = new FileOutputStream("filepathhere");
         properties.setProperty("afkCheckChannel", newChannel);
         properties.store(out, null);
         out.close();
     }
 
     public void setVerifyChannel (String newChannel) throws IOException {
-        FileInputStream in = new FileInputStream("C:\\Users\\Giacomo\\Dropbox\\Programming\\JDAbot\\build\\libs\\config.properties");
+        FileInputStream in = new FileInputStream("filepathhere");
         Properties properties = new Properties();
         properties.load(in);
         in.close();
 
-        FileOutputStream out = new FileOutputStream("C:\\Users\\Giacomo\\Dropbox\\Programming\\JDAbot\\build\\libs\\config.properties");
+        FileOutputStream out = new FileOutputStream("filepathhere");
         properties.setProperty("verifyChannel", newChannel);
         properties.store(out, null);
         out.close();
