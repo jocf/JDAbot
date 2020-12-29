@@ -25,7 +25,7 @@ public class PropParser {
         Properties properties = new Properties();
         // This is the location of the properties file. It should be in the "root" directory.
         try {
-            FileInputStream in = new FileInputStream("C:\\Users\\Giacomo\\Dropbox\\Programming\\JDAbot\\build\\libs\\config.properties");
+            FileInputStream in = new FileInputStream("filepathhere");
             // We will now load the properties in.
             properties.load(in);
         } catch (IOException e) {
